@@ -1,76 +1,105 @@
 ﻿using TowerDefenseConsole.Models;
 
-Console.WriteLine("=== PRUEBA DE TOWER DEFENSE - CLASES BASE ===\n");
+Console.WriteLine("=== TOWER DEFENSE - CONSOLA ===\n");
 
-// Creamos un enemigo
-Enemy goblin = new Enemy("Goblin", 50, 5);
-Console.WriteLine($"Enemigo creado: {goblin.Nombre} | Vida: {goblin.Vida} | Velocidad: {goblin.Velocidad}\n");
+// Suscribimos el observador para que veamos las notificaciones del juego
+ConsolaObservador observador = new ConsolaObservador();
+GameManager.Instancia.Suscribir(observador);
 
-// Probamos que el enemigo se mueve (interfaz IMovible)
-goblin.Mover();
-goblin.Mover();
-Console.WriteLine();
+GeneradorOleadas generador = new GeneradorOleadas();
 
-// Creamos las 2 torres (clases concretas que heredan de Tower)
-ArcherTower arquero = new ArcherTower();
-CannonTower cañon = new CannonTower();
+// Creamos las torres disponibles del jugador
+List<Tower> torresDelJugador = new List<Tower>();
 
-arquero.MostrarInfo();
-cañon.MostrarInfo();
-Console.WriteLine();
+bool jugando = true;
 
-// Probamos el POLIMORFISMO: ambas torres implementan Atacar() distinto
-Console.WriteLine("--- Ataques (polimorfismo) ---");
-arquero.Atacar(goblin);
-cañon.Atacar(goblin);
-Console.WriteLine();
+while (jugando)
+{
+    Console.WriteLine("\n--- MENÚ PRINCIPAL ---");
+    Console.WriteLine($"Dinero: {GameManager.Instancia.Dinero} | Vidas: {GameManager.Instancia.Vidas} | Oleada: {GameManager.Instancia.OleadaActual}");
+    Console.WriteLine("1. Comprar Torre Arquero (50 oro)");
+    Console.WriteLine("2. Comprar Torre Cañón (100 oro)");
+    Console.WriteLine("3. Iniciar siguiente oleada");
+    Console.WriteLine("4. Salir");
+    Console.Write("Elige una opción: ");
 
-// Probamos si el enemigo sigue vivo
-Console.WriteLine($"¿{goblin.Nombre} sigue vivo? {goblin.EstaVivo()}\n");
+    string opcion = Console.ReadLine();
 
-// Probamos FIBONACCI subiendo de nivel la torre arquero
-Console.WriteLine("--- Subiendo de nivel (Fibonacci) ---");
-arquero.SubirNivel();
-arquero.SubirNivel();
-arquero.SubirNivel();
-arquero.MostrarInfo();
+    switch (opcion)
+    {
+        case "1":
+            if (GameManager.Instancia.Dinero >= 50)
+            {
+                ArcherTower nuevaArquero = new ArcherTower();
+                torresDelJugador.Add(nuevaArquero);
+                GameManager.Instancia.GastarDinero(50);
+                Console.WriteLine("¡Compraste una Torre Arquero!");
+            }
+            else
+            {
+                Console.WriteLine("No tienes suficiente dinero.");
+            }
+            break;
 
-Console.WriteLine("\n=== FIN DE LA PRUEBA ===");
+        case "2":
+            if (GameManager.Instancia.Dinero >= 100)
+            {
+                CannonTower nuevaCanon = new CannonTower();
+                torresDelJugador.Add(nuevaCanon);
+                GameManager.Instancia.GastarDinero(100);
+                Console.WriteLine("¡Compraste una Torre Cañón!");
+            }
+            else
+            {
+                Console.WriteLine("No tienes suficiente dinero.");
+            }
+            break;
 
-// ==================== NUEVO BLOQUE ====================
+        case "3":
+            GameManager.Instancia.AvanzarOleada();
+            List<Enemy> enemigos = generador.GenerarOleada(GameManager.Instancia.OleadaActual);
+            Console.WriteLine($"\nVienen {enemigos.Count} enemigo(s) en esta oleada!\n");
 
-Console.WriteLine("\n=== PRUEBA DE SINGLETON + OBSERVER ===\n");
+            foreach (Enemy enemigo in enemigos)
+            {
+                Console.WriteLine($"--- Atacando a {enemigo.Nombre} (Vida: {enemigo.Vida}) ---");
 
-// Registramos un observador (patrón Observer)
-ConsolaObservador observadorConsola = new ConsolaObservador();
-GameManager.Instancia.Suscribir(observadorConsola);
+                foreach (Tower torre in torresDelJugador)
+                {
+                    if (!enemigo.EstaVivo())
+                        break;
 
-// Probamos que el Singleton SIEMPRE es la misma instancia
-GameManager manager1 = GameManager.Instancia;
-GameManager manager2 = GameManager.Instancia;
-Console.WriteLine($"¿Son la misma instancia? {ReferenceEquals(manager1, manager2)}\n");
+                    torre.Atacar(enemigo);
+                }
 
-Console.WriteLine($"Dinero inicial: {GameManager.Instancia.Dinero}");
-Console.WriteLine($"Vidas iniciales: {GameManager.Instancia.Vidas}");
-Console.WriteLine($"Oleada actual: {GameManager.Instancia.OleadaActual}\n");
+                if (enemigo.EstaVivo())
+                {
+                    Console.WriteLine($"{enemigo.Nombre} sobrevivió y llegó a tu base!");
+                    GameManager.Instancia.RegistrarVidaPerdida();
+                }
+                else
+                {
+                    GameManager.Instancia.RegistrarEnemigoEliminado();
+                }
+            }
 
-// Simulamos que se elimina un enemigo (esto notifica al observador)
-GameManager.Instancia.RegistrarEnemigoEliminado();
-Console.WriteLine($"Dinero después de eliminar enemigo: {GameManager.Instancia.Dinero}\n");
+            if (GameManager.Instancia.Vidas <= 0)
+            {
+                Console.WriteLine("\n¡GAME OVER! Te quedaste sin vidas.");
+                jugando = false;
+            }
+            break;
 
-// Simulamos que avanza la oleada
-GameManager.Instancia.AvanzarOleada();
+        case "4":
+            jugando = false;
+            Console.WriteLine("Gracias por jugar!");
+            break;
 
-// Simulamos otro enemigo eliminado en la nueva oleada (la recompensa cambia por Fibonacci)
-GameManager.Instancia.RegistrarEnemigoEliminado();
-Console.WriteLine($"Dinero después de la oleada 2: {GameManager.Instancia.Dinero}\n");
+        default:
+            Console.WriteLine("Opción no válida.");
+            break;
+    }
+}
 
-// Simulamos que el jugador pierde una vida
-GameManager.Instancia.RegistrarVidaPerdida();
-
-Console.WriteLine("\n=== FIN PRUEBA SINGLETON + OBSERVER ===");
-
-// ==================== FIN DEL NUEVO BLOQUE ====================
-
+Console.WriteLine("\n=== FIN DEL JUEGO ===");
 Console.ReadLine();
-

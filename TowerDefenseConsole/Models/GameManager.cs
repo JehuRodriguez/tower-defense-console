@@ -82,6 +82,11 @@ namespace TowerDefenseConsole.Models
             NotificarATodos("VidaPerdida", Vidas);
         }
 
+        public void GastarDinero(int cantidad)
+        {
+            Dinero -= cantidad;
+        }
+
         public void AvanzarOleada()
         {
             OleadaActual++;
