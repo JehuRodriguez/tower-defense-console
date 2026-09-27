@@ -37,4 +37,3 @@ arquero.MostrarInfo();
 
 Console.WriteLine("\n=== FIN DE LA PRUEBA ===");
 Console.ReadLine();
-
