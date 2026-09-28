@@ -14,6 +14,7 @@ List<Tower> torresDelJugador = new List<Tower>();
 List<Enemy> enemigosActuales = new List<Enemy>();
 
 bool salir = false;
+int oleadaVictoria = 7;
 
 while (!salir)
 {
@@ -118,6 +119,12 @@ while (!salir)
                 Console.WriteLine("\n¡GAME OVER!");
                 salir = true;
             }
+            else if (GameManager.Instancia.OleadaActual >= oleadaVictoria)
+            {
+                Console.WriteLine("\n¡VICTORIA! Sobreviviste todas las oleadas y defendiste tu base.");
+                salir = true;
+            }
+
             break;
 
         case "6":
