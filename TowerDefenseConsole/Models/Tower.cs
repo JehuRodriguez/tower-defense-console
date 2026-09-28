@@ -49,7 +49,7 @@ namespace TowerDefenseConsole.Models
             Nivel++;
             int multiplicadorFibonacci = CalcularFibonacci(Nivel);
             Daño = Daño + multiplicadorFibonacci;
-            Console.WriteLine(Nombre + "subio a nivel " + Nivel + "! Nuevo daño: " + Daño + "(bonus Fibonacci : " + multiplicadorFibonacci + ")");
+            Console.WriteLine($"{Nombre} subió a nivel {Nivel}! Nuevo daño: {Daño} (bonus Fibonacci: +{multiplicadorFibonacci})");
 
 
         }
